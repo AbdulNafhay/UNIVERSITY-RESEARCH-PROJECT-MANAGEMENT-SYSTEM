@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Projects — University Research Management System</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">🎓</div><div><h2>UniResearch</h2><p>MANAGEMENT SYSTEM</p></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a class="nav-link" href="../index.html" data-page="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+    <div class="nav-label">Core Data</div>
+    <a class="nav-link" href="departments.html"  data-page="departments.html"><span class="nav-icon">🏛️</span> Departments</a>
+    <a class="nav-link" href="supervisors.html"  data-page="supervisors.html"><span class="nav-icon">👨‍🏫</span> Supervisors</a>
+    <a class="nav-link" href="students.html"     data-page="students.html"><span class="nav-icon">🎓</span> Students</a>
+    <a class="nav-link" href="projects.html"     data-page="projects.html"><span class="nav-icon">🔬</span> Projects</a>
+    <div class="nav-label">Finance & Output</div>
+    <a class="nav-link" href="funding.html"      data-page="funding.html"><span class="nav-icon">💰</span> Funding</a>
+    <a class="nav-link" href="publications.html" data-page="publications.html"><span class="nav-icon">📄</span> Publications</a>
+    <div class="nav-label">Analytics</div>
+    <a class="nav-link" href="reports.html"      data-page="reports.html"><span class="nav-icon">📈</span> Reports</a>
+  </nav>
+  <div class="sidebar-footer"><strong>University Research DB</strong>SQL Server + Node.js + HTML</div>
+</aside>
+
+<div class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" style="background:none;border:none;font-size:22px;cursor:pointer">☰</button>
+      <div class="topbar-title">Projects <span>Management</span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="openModal('addModal')">+ Add Project</button>
+    </div>
+  </header>
+
+  <div class="page-body">
+    <div class="page-header">
+      <div><div class="breadcrumb">Home / <span>Projects</span></div>
+      <h1>Research Projects</h1><p>Track, manage and filter all research projects</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>🔬 All Projects</h3><span id="totalCount" style="color:#e8c250;font-size:13px"></span></div>
+      <div class="filter-bar">
+        <div class="search-wrap"><span class="si">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search project title…" oninput="filterData()"></div>
+        <select class="filter-select" id="statusFilter" onchange="filterData()">
+          <option value="">All Status</option>
+          <option>Active</option><option>Completed</option><option>Proposed</option><option>Suspended</option>
+        </select>
+        <select class="filter-select" id="typeFilter" onchange="filterData()">
+          <option value="">All Types</option>
+          <option>Basic Research</option><option>Applied Research</option>
+          <option>Government Funded</option><option>Industry Collaboration</option>
+        </select>
+        <select class="filter-select" id="deptFilter" onchange="filterData()">
+          <option value="">All Departments</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Project Title</th><th>Type</th><th>Status</th><th>Supervisor</th><th>Department</th><th>Budget</th><th>Funding</th><th>Start</th><th>End</th><th>Actions</th></tr></thead>
+          <tbody id="projTbl"><tr><td colspan="11" class="loading-row"><span class="spinner"></span></td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pager"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <div class="modal-head"><h3>➕ Add New Project</h3><button class="btn-close" onclick="closeModal('addModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Project Title *</label><input id="a_title" placeholder="e.g. Deep Learning for Medical Diagnosis"></div>
+        <div class="form-group"><label>Project Type *</label>
+          <select id="a_type"><option value="">— Select —</option>
+            <option>Basic Research</option><option>Applied Research</option>
+            <option>Government Funded</option><option>Industry Collaboration</option>
+          </select></div>
+        <div class="form-group"><label>Status *</label>
+          <select id="a_status"><option value="">— Select —</option>
+            <option>Active</option><option>Proposed</option><option>Completed</option><option>Suspended</option>
+          </select></div>
+        <div class="form-group"><label>Start Date</label><input type="date" id="a_start"></div>
+        <div class="form-group"><label>End Date</label><input type="date" id="a_end"></div>
+        <div class="form-group"><label>Budget (PKR)</label><input type="number" id="a_budget" placeholder="e.g. 2500000"></div>
+        <div class="form-group"><label>Department *</label><select id="a_dept"></select></div>
+        <div class="form-group"><label>Supervisor *</label><select id="a_sup"></select></div>
+        <div class="form-group full"><label>Description</label><textarea id="a_desc" placeholder="Project objectives and description…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addProject()">💾 Save Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal">
+    <div class="modal-head"><h3>✏️ Edit Project</h3><button class="btn-close" onclick="closeModal('editModal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="e_id">
+      <div class="form-grid">
+        <div class="form-group full"><label>Project Title *</label><input id="e_title"></div>
+        <div class="form-group"><label>Project Type *</label>
+          <select id="e_type"><option>Basic Research</option><option>Applied Research</option><option>Government Funded</option><option>Industry Collaboration</option></select></div>
+        <div class="form-group"><label>Status *</label>
+          <select id="e_status"><option>Active</option><option>Proposed</option><option>Completed</option><option>Suspended</option></select></div>
+        <div class="form-group"><label>Start Date</label><input type="date" id="e_start"></div>
+        <div class="form-group"><label>End Date</label><input type="date" id="e_end"></div>
+        <div class="form-group"><label>Budget (PKR)</label><input type="number" id="e_budget"></div>
+        <div class="form-group"><label>Amount Spent (PKR)</label><input type="number" id="e_spent"></div>
+        <div class="form-group"><label>Department *</label><select id="e_dept"></select></div>
+        <div class="form-group"><label>Supervisor *</label><select id="e_sup"></select></div>
+        <div class="form-group full"><label>Description</label><textarea id="e_desc"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateProject()">💾 Update Project</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let allProjects = [];
+
+async function loadProjects() {
+    document.getElementById('projTbl').innerHTML = '<tr><td colspan="11" class="loading-row"><span class="spinner"></span></td></tr>';
+    const r = await GET('/projects');
+    allProjects = r.success ? r.data : [];
+    document.getElementById('totalCount').textContent = `Total: ${allProjects.length}`;
+    renderTable(allProjects, 1);
+}
+
+function renderTable(data, page) {
+    const pg = paginate(data, page, 15);
+    const tb = document.getElementById('projTbl');
+    if(!pg.items.length) { tb.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="ei">🔬</div><h3>No projects found</h3></div></td></tr>'; return; }
+    tb.innerHTML = pg.items.map(p=>`<tr>
+        <td class="muted">${p.ProjectID}</td>
+        <td><b style="font-size:12px">${p.ProjectTitle}</b></td>
+        <td class="muted" style="font-size:11px">${p.ProjectType||'—'}</td>
+        <td>${statusBadge(p.Status)}</td>
+        <td class="muted">${p.SupervisorName||'—'}</td>
+        <td class="muted">${p.DepartmentName||'—'}</td>
+        <td class="muted">${fmtMoney(p.Budget)}</td>
+        <td><span class="badge badge-active">${fmtMoney(p.TotalFunding)}</span></td>
+        <td class="muted">${fmtDate(p.StartDate)}</td>
+        <td class="muted">${fmtDate(p.EndDate)}</td>
+        <td><div class="td-actions">
+            <button class="btn btn-navy btn-sm" onclick="editProject(${p.ProjectID})">✏️</button>
+            <button class="btn btn-red btn-sm"  onclick="deleteProject(${p.ProjectID},'${p.ProjectTitle.replace(/'/g,"\\'")}')">🗑️</button>
+        </div></td>
+    </tr>`).join('');
+    renderPager(document.getElementById('pager'), pg, p2 => renderTable(data, p2));
+}
+
+function filterData() {
+    const s  = document.getElementById('searchInput').value.toLowerCase();
+    const st = document.getElementById('statusFilter').value;
+    const ty = document.getElementById('typeFilter').value;
+    const d  = document.getElementById('deptFilter').value;
+    let data = allProjects.filter(x =>
+        (!s  || x.ProjectTitle.toLowerCase().includes(s)) &&
+        (!st || x.Status === st) &&
+        (!ty || x.ProjectType === ty) &&
+        (!d  || String(x.DepartmentID) === d)
+    );
+    document.getElementById('totalCount').textContent = `Showing: ${data.length} / Total: ${allProjects.length}`;
+    renderTable(data, 1);
+}
+
+function clearFilters() {
+    ['searchInput','statusFilter','typeFilter','deptFilter'].forEach(id => { document.getElementById(id).value = ''; });
+    renderTable(allProjects, 1);
+}
+
+async function addProject() {
+    const body = {
+        ProjectTitle: document.getElementById('a_title').value,
+        ProjectType:  document.getElementById('a_type').value,
+        Description:  document.getElementById('a_desc').value,
+        StartDate:    document.getElementById('a_start').value,
+        EndDate:      document.getElementById('a_end').value,
+        Budget:       Number(document.getElementById('a_budget').value)||0,
+        Status:       document.getElementById('a_status').value,
+        DepartmentID: Number(document.getElementById('a_dept').value),
+        SupervisorID: Number(document.getElementById('a_sup').value)
+    };
+    if(!body.ProjectTitle||!body.ProjectType||!body.Status||!body.DepartmentID) return toast('Fill required fields','error');
+    const r = await POST('/projects', body);
+    if(r.success) { toast('Project added!'); closeModal('addModal'); loadProjects(); } else toast(r.message,'error');
+}
+
+async function editProject(id) {
+    const r = await GET(`/projects?search=`);
+    const p = allProjects.find(x=>x.ProjectID===id);
+    if(!p) return;
+    document.getElementById('e_id').value      = p.ProjectID;
+    document.getElementById('e_title').value   = p.ProjectTitle;
+    document.getElementById('e_type').value    = p.ProjectType;
+    document.getElementById('e_status').value  = p.Status;
+    document.getElementById('e_start').value   = p.StartDate ? p.StartDate.slice(0,10) : '';
+    document.getElementById('e_end').value     = p.EndDate   ? p.EndDate.slice(0,10)   : '';
+    document.getElementById('e_budget').value  = p.Budget;
+    document.getElementById('e_spent').value   = p.AmountSpent||0;
+    document.getElementById('e_desc').value    = p.Description||'';
+    await fillSelect(document.getElementById('e_dept'),'/departments','DepartmentID','DepartmentName');
+    await fillSelect(document.getElementById('e_sup'), '/supervisors','SupervisorID','FullName');
+    document.getElementById('e_dept').value = p.DepartmentID;
+    document.getElementById('e_sup').value  = p.SupervisorID;
+    openModal('editModal');
+}
+
+async function updateProject() {
+    const id = document.getElementById('e_id').value;
+    const body = {
+        ProjectTitle: document.getElementById('e_title').value,
+        ProjectType:  document.getElementById('e_type').value,
+        Description:  document.getElementById('e_desc').value,
+        StartDate:    document.getElementById('e_start').value,
+        EndDate:      document.getElementById('e_end').value,
+        Budget:       Number(document.getElementById('e_budget').value)||0,
+        AmountSpent:  Number(document.getElementById('e_spent').value)||0,
+        Status:       document.getElementById('e_status').value,
+        DepartmentID: Number(document.getElementById('e_dept').value),
+        SupervisorID: Number(document.getElementById('e_sup').value)
+    };
+    const r = await PUT(`/projects/${id}`, body);
+    if(r.success) { toast('Project updated!'); closeModal('editModal'); loadProjects(); } else toast(r.message,'error');
+}
+
+async function deleteProject(id, title) {
+    const ok = await confirmDelete(`Delete project "${title}"?`);
+    if(!ok) return;
+    const r = await DELETE(`/projects/${id}`);
+    if(r.success) { toast('Project deleted!'); loadProjects(); } else toast(r.message,'error');
+}
+
+async function init() {
+    await fillSelect(document.getElementById('deptFilter'),'/departments','DepartmentID','DepartmentName','All Departments');
+    await fillSelect(document.getElementById('a_dept'),    '/departments','DepartmentID','DepartmentName');
+    await fillSelect(document.getElementById('a_sup'),     '/supervisors','SupervisorID','FullName');
+    loadProjects();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

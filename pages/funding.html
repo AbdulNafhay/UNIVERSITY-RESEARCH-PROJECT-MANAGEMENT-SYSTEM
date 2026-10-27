@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funding — University Research Management System</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">🎓</div><div><h2>UniResearch</h2><p>MANAGEMENT SYSTEM</p></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a class="nav-link" href="../index.html" data-page="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+    <div class="nav-label">Core Data</div>
+    <a class="nav-link" href="departments.html"  data-page="departments.html"><span class="nav-icon">🏛️</span> Departments</a>
+    <a class="nav-link" href="supervisors.html"  data-page="supervisors.html"><span class="nav-icon">👨‍🏫</span> Supervisors</a>
+    <a class="nav-link" href="students.html"     data-page="students.html"><span class="nav-icon">🎓</span> Students</a>
+    <a class="nav-link" href="projects.html"     data-page="projects.html"><span class="nav-icon">🔬</span> Projects</a>
+    <div class="nav-label">Finance & Output</div>
+    <a class="nav-link" href="funding.html"      data-page="funding.html"><span class="nav-icon">💰</span> Funding</a>
+    <a class="nav-link" href="publications.html" data-page="publications.html"><span class="nav-icon">📄</span> Publications</a>
+    <div class="nav-label">Analytics</div>
+    <a class="nav-link" href="reports.html"      data-page="reports.html"><span class="nav-icon">📈</span> Reports</a>
+  </nav>
+  <div class="sidebar-footer"><strong>University Research DB</strong>SQL Server + Node.js + HTML</div>
+</aside>
+
+<div class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" style="background:none;border:none;font-size:22px;cursor:pointer">☰</button>
+      <div class="topbar-title">Funding <span>Management</span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="openModal('addModal')">+ Add Funding</button>
+    </div>
+  </header>
+
+  <div class="page-body">
+    <div class="page-header">
+      <div><div class="breadcrumb">Home / <span>Funding</span></div>
+      <h1>Funding Records</h1><p>Manage all research funding sources and grants</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>💰 All Funding Records</h3><span id="totalCount" style="color:#e8c250;font-size:13px"></span></div>
+      <div class="filter-bar">
+        <div class="search-wrap"><span class="si">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search funding source…" oninput="filterData()"></div>
+        <select class="filter-select" id="statusFilter" onchange="filterData()">
+          <option value="">All Status</option><option>Active</option><option>Expired</option><option>Pending</option>
+        </select>
+        <select class="filter-select" id="typeFilter" onchange="filterData()">
+          <option value="">All Types</option>
+          <option>Government Grant</option><option>Industry Sponsorship</option>
+          <option>International Fund</option><option>Internal University Fund</option><option>Donation</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Funding Source</th><th>Type</th><th>Amount (PKR)</th><th>Status</th><th>Project</th><th>Grant Date</th><th>Expiry Date</th><th>Actions</th></tr></thead>
+          <tbody id="fundTbl"><tr><td colspan="9" class="loading-row"><span class="spinner"></span> Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pager"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <div class="modal-head"><h3>➕ Add Funding Record</h3><button class="btn-close" onclick="closeModal('addModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Funding Source *</label><input id="a_source" placeholder="e.g. Higher Education Commission"></div>
+        <div class="form-group"><label>Funding Type *</label>
+          <select id="a_type"><option value="">— Select —</option>
+            <option>Government Grant</option><option>Industry Sponsorship</option>
+            <option>International Fund</option><option>Internal University Fund</option><option>Donation</option>
+          </select></div>
+        <div class="form-group"><label>Amount (PKR) *</label><input type="number" id="a_amount" placeholder="e.g. 1500000"></div>
+        <div class="form-group"><label>Grant Date</label><input type="date" id="a_grant"></div>
+        <div class="form-group"><label>Expiry Date</label><input type="date" id="a_expiry"></div>
+        <div class="form-group"><label>Status *</label>
+          <select id="a_status"><option value="">— Select —</option>
+            <option>Active</option><option>Pending</option><option>Expired</option>
+          </select></div>
+        <div class="form-group full"><label>Project *</label><select id="a_proj"></select></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addFunding()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal">
+    <div class="modal-head"><h3>✏️ Edit Funding</h3><button class="btn-close" onclick="closeModal('editModal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="e_id">
+      <div class="form-grid">
+        <div class="form-group full"><label>Funding Source *</label><input id="e_source"></div>
+        <div class="form-group"><label>Funding Type *</label>
+          <select id="e_type">
+            <option>Government Grant</option><option>Industry Sponsorship</option>
+            <option>International Fund</option><option>Internal University Fund</option><option>Donation</option>
+          </select></div>
+        <div class="form-group"><label>Amount (PKR) *</label><input type="number" id="e_amount"></div>
+        <div class="form-group"><label>Grant Date</label><input type="date" id="e_grant"></div>
+        <div class="form-group"><label>Expiry Date</label><input type="date" id="e_expiry"></div>
+        <div class="form-group"><label>Status *</label>
+          <select id="e_status"><option>Active</option><option>Pending</option><option>Expired</option></select></div>
+        <div class="form-group full"><label>Project *</label><select id="e_proj"></select></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateFunding()">💾 Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let allFunding = [];
+
+async function loadFunding() {
+    const r = await GET('/funding');
+    allFunding = r.success ? r.data : [];
+    document.getElementById('totalCount').textContent = `Total: ${allFunding.length}`;
+    renderTable(allFunding, 1);
+}
+
+function renderTable(data, page) {
+    const pg = paginate(data, page, 15);
+    const tb = document.getElementById('fundTbl');
+    if (!pg.items.length) { tb.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="ei">💰</div><h3>No funding records found</h3></div></td></tr>'; return; }
+    tb.innerHTML = pg.items.map(f => `<tr>
+        <td class="muted">${f.FundingID}</td>
+        <td><b>${f.FundingSource}</b></td>
+        <td class="muted" style="font-size:11px">${f.FundingType || '—'}</td>
+        <td><b style="color:#27ae60">${fmtMoney(f.Amount)}</b></td>
+        <td>${statusBadge(f.Status)}</td>
+        <td class="muted" style="font-size:11px">${f.ProjectTitle || '—'}</td>
+        <td class="muted">${fmtDate(f.GrantDate)}</td>
+        <td class="muted">${fmtDate(f.ExpiryDate)}</td>
+        <td><div class="td-actions">
+            <button class="btn btn-navy btn-sm" onclick="editFunding(${f.FundingID})">✏️ Edit</button>
+            <button class="btn btn-red btn-sm"  onclick="deleteFunding(${f.FundingID},'${f.FundingSource.replace(/'/g,"\\'")}')">🗑️</button>
+        </div></td>
+    </tr>`).join('');
+    renderPager(document.getElementById('pager'), pg, p => renderTable(data, p));
+}
+
+function filterData() {
+    const s  = document.getElementById('searchInput').value.toLowerCase();
+    const st = document.getElementById('statusFilter').value;
+    const ty = document.getElementById('typeFilter').value;
+    const data = allFunding.filter(x =>
+        (!s  || x.FundingSource.toLowerCase().includes(s)) &&
+        (!st || x.Status === st) &&
+        (!ty || x.FundingType === ty)
+    );
+    document.getElementById('totalCount').textContent = `Showing: ${data.length} / Total: ${allFunding.length}`;
+    renderTable(data, 1);
+}
+
+function clearFilters() {
+    ['searchInput','statusFilter','typeFilter'].forEach(id => document.getElementById(id).value = '');
+    renderTable(allFunding, 1);
+}
+
+async function addFunding() {
+    const body = { FundingSource: document.getElementById('a_source').value, FundingType: document.getElementById('a_type').value, Amount: Number(document.getElementById('a_amount').value), GrantDate: document.getElementById('a_grant').value, ExpiryDate: document.getElementById('a_expiry').value, Status: document.getElementById('a_status').value, ProjectID: Number(document.getElementById('a_proj').value) };
+    if (!body.FundingSource || !body.FundingType || !body.Amount || !body.ProjectID) return toast('Fill required fields', 'error');
+    const r = await POST('/funding', body);
+    if (r.success) { toast('Funding added!'); closeModal('addModal'); loadFunding(); } else toast(r.message, 'error');
+}
+
+function editFunding(id) {
+    const f = allFunding.find(x => x.FundingID === id);
+    if (!f) return;
+    document.getElementById('e_id').value      = f.FundingID;
+    document.getElementById('e_source').value  = f.FundingSource;
+    document.getElementById('e_type').value    = f.FundingType;
+    document.getElementById('e_amount').value  = f.Amount;
+    document.getElementById('e_grant').value   = f.GrantDate  ? f.GrantDate.slice(0,10)  : '';
+    document.getElementById('e_expiry').value  = f.ExpiryDate ? f.ExpiryDate.slice(0,10) : '';
+    document.getElementById('e_status').value  = f.Status;
+    fillSelect(document.getElementById('e_proj'), '/projects', 'ProjectID', 'ProjectTitle').then(() => {
+        document.getElementById('e_proj').value = f.ProjectID;
+    });
+    openModal('editModal');
+}
+
+async function updateFunding() {
+    const id = document.getElementById('e_id').value;
+    const body = { FundingSource: document.getElementById('e_source').value, FundingType: document.getElementById('e_type').value, Amount: Number(document.getElementById('e_amount').value), GrantDate: document.getElementById('e_grant').value, ExpiryDate: document.getElementById('e_expiry').value, Status: document.getElementById('e_status').value, ProjectID: Number(document.getElementById('e_proj').value) };
+    const r = await PUT(`/funding/${id}`, body);
+    if (r.success) { toast('Funding updated!'); closeModal('editModal'); loadFunding(); } else toast(r.message, 'error');
+}
+
+async function deleteFunding(id, name) {
+    const ok = await confirmDelete(`Delete funding record "${name}"?`);
+    if (!ok) return;
+    const r = await DELETE(`/funding/${id}`);
+    if (r.success) { toast('Funding deleted!'); loadFunding(); } else toast(r.message, 'error');
+}
+
+async function init() {
+    await fillSelect(document.getElementById('a_proj'), '/projects', 'ProjectID', 'ProjectTitle');
+    loadFunding();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

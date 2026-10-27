@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Supervisors — University Research Management System</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">🎓</div><div><h2>UniResearch</h2><p>MANAGEMENT SYSTEM</p></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a class="nav-link" href="../index.html" data-page="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+    <div class="nav-label">Core Data</div>
+    <a class="nav-link" href="departments.html"  data-page="departments.html"><span class="nav-icon">🏛️</span> Departments</a>
+    <a class="nav-link" href="supervisors.html"  data-page="supervisors.html"><span class="nav-icon">👨‍🏫</span> Supervisors</a>
+    <a class="nav-link" href="students.html"     data-page="students.html"><span class="nav-icon">🎓</span> Students</a>
+    <a class="nav-link" href="projects.html"     data-page="projects.html"><span class="nav-icon">🔬</span> Projects</a>
+    <div class="nav-label">Finance & Output</div>
+    <a class="nav-link" href="funding.html"      data-page="funding.html"><span class="nav-icon">💰</span> Funding</a>
+    <a class="nav-link" href="publications.html" data-page="publications.html"><span class="nav-icon">📄</span> Publications</a>
+    <div class="nav-label">Analytics</div>
+    <a class="nav-link" href="reports.html"      data-page="reports.html"><span class="nav-icon">📈</span> Reports</a>
+  </nav>
+  <div class="sidebar-footer"><strong>University Research DB</strong>SQL Server + Node.js + HTML</div>
+</aside>
+
+<div class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" style="background:none;border:none;font-size:22px;cursor:pointer">☰</button>
+      <div class="topbar-title">Supervisors <span>Management</span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="openModal('addModal')">+ Add Supervisor</button>
+    </div>
+  </header>
+
+  <div class="page-body">
+    <div class="page-header">
+      <div><div class="breadcrumb">Home / <span>Supervisors</span></div>
+      <h1>Supervisors</h1><p>Manage all faculty supervisors — search, filter, add, edit, delete</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>👨‍🏫 All Supervisors</h3><span id="totalCount" style="color:#e8c250;font-size:13px"></span></div>
+      <div class="filter-bar">
+        <div class="search-wrap"><span class="si">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by name…" oninput="filterData()"></div>
+        <select class="filter-select" id="genderFilter" onchange="filterData()">
+          <option value="">All Genders</option><option>Male</option><option>Female</option>
+        </select>
+        <select class="filter-select" id="deptFilter" onchange="filterData()">
+          <option value="">All Departments</option>
+        </select>
+        <select class="filter-select" id="alphaFilter" onchange="filterData()">
+          <option value="">Starts With…</option>
+          <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+          <option>F</option><option>G</option><option>H</option><option>I</option><option>J</option>
+          <option>K</option><option>L</option><option>M</option><option>N</option><option>O</option>
+          <option>P</option><option>Q</option><option>R</option><option>S</option><option>T</option>
+          <option>U</option><option>V</option><option>W</option><option>Y</option><option>Z</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Full Name</th><th>Gender</th><th>Designation</th><th>Qualification</th><th>Specialization</th><th>Department</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
+          <tbody id="supTbl"><tr><td colspan="10" class="loading-row"><span class="spinner"></span> Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pager"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <div class="modal-head"><h3>➕ Add Supervisor</h3><button class="btn-close" onclick="closeModal('addModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Full Name *</label><input id="a_name" placeholder="e.g. Dr. Ahmed Khan"></div>
+        <div class="form-group"><label>Gender *</label>
+          <select id="a_gender"><option value="">— Select —</option><option>Male</option><option>Female</option></select></div>
+        <div class="form-group"><label>Date of Birth</label><input type="date" id="a_dob"></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="a_email" placeholder="name@uni.edu.pk"></div>
+        <div class="form-group"><label>Phone</label><input id="a_phone" placeholder="0300-XXXXXXX"></div>
+        <div class="form-group"><label>Designation *</label><input id="a_desig" placeholder="e.g. Professor"></div>
+        <div class="form-group"><label>Qualification</label><input id="a_qual" placeholder="e.g. PhD CS"></div>
+        <div class="form-group"><label>Specialization</label><input id="a_spec" placeholder="e.g. Machine Learning"></div>
+        <div class="form-group full"><label>Department *</label><select id="a_dept"></select></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addSupervisor()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal">
+    <div class="modal-head"><h3>✏️ Edit Supervisor</h3><button class="btn-close" onclick="closeModal('editModal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="e_id">
+      <div class="form-grid">
+        <div class="form-group"><label>Full Name *</label><input id="e_name"></div>
+        <div class="form-group"><label>Gender *</label>
+          <select id="e_gender"><option>Male</option><option>Female</option></select></div>
+        <div class="form-group"><label>Date of Birth</label><input type="date" id="e_dob"></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="e_email"></div>
+        <div class="form-group"><label>Phone</label><input id="e_phone"></div>
+        <div class="form-group"><label>Designation *</label><input id="e_desig"></div>
+        <div class="form-group"><label>Qualification</label><input id="e_qual"></div>
+        <div class="form-group"><label>Specialization</label><input id="e_spec"></div>
+        <div class="form-group full"><label>Department *</label><select id="e_dept"></select></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateSupervisor()">💾 Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let allSups = [];
+
+async function loadSupervisors() {
+    const r = await GET('/supervisors');
+    allSups = r.success ? r.data : [];
+    document.getElementById('totalCount').textContent = `Total: ${allSups.length}`;
+    renderTable(allSups, 1);
+}
+
+function renderTable(data, page) {
+    const pg = paginate(data, page, 15);
+    const tb = document.getElementById('supTbl');
+    if (!pg.items.length) { tb.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="ei">👨‍🏫</div><h3>No supervisors found</h3></div></td></tr>'; return; }
+    tb.innerHTML = pg.items.map(s => `<tr>
+        <td class="muted">${s.SupervisorID}</td>
+        <td><b>${s.FullName}</b></td>
+        <td>${genderBadge(s.Gender)}</td>
+        <td class="muted">${s.Designation || '—'}</td>
+        <td class="muted">${s.Qualification || '—'}</td>
+        <td class="muted" style="font-size:11px">${s.Specialization || '—'}</td>
+        <td class="muted">${s.DepartmentName || '—'}</td>
+        <td class="muted" style="font-size:11px">${s.Email || '—'}</td>
+        <td class="muted">${s.Phone || '—'}</td>
+        <td><div class="td-actions">
+            <button class="btn btn-navy btn-sm" onclick="editSupervisor(${s.SupervisorID})">✏️ Edit</button>
+            <button class="btn btn-red btn-sm"  onclick="deleteSupervisor(${s.SupervisorID},'${s.FullName.replace(/'/g,"\\'")}')">🗑️</button>
+        </div></td>
+    </tr>`).join('');
+    renderPager(document.getElementById('pager'), pg, p => renderTable(data, p));
+}
+
+function filterData() {
+    const s  = document.getElementById('searchInput').value.toLowerCase();
+    const g  = document.getElementById('genderFilter').value;
+    const d  = document.getElementById('deptFilter').value;
+    const a  = document.getElementById('alphaFilter').value;
+    const data = allSups.filter(x =>
+        (!s || x.FullName.toLowerCase().includes(s)) &&
+        (!g || x.Gender === g) &&
+        (!d || String(x.DepartmentID) === d) &&
+        (!a || x.FullName.toUpperCase().startsWith(a))
+    );
+    document.getElementById('totalCount').textContent = `Showing: ${data.length} / Total: ${allSups.length}`;
+    renderTable(data, 1);
+}
+
+function clearFilters() {
+    ['searchInput','genderFilter','deptFilter','alphaFilter'].forEach(id => document.getElementById(id).value = '');
+    renderTable(allSups, 1);
+}
+
+async function addSupervisor() {
+    const body = { FullName: document.getElementById('a_name').value, Gender: document.getElementById('a_gender').value, DateOfBirth: document.getElementById('a_dob').value, Email: document.getElementById('a_email').value, Phone: document.getElementById('a_phone').value, Designation: document.getElementById('a_desig').value, Qualification: document.getElementById('a_qual').value, Specialization: document.getElementById('a_spec').value, DepartmentID: Number(document.getElementById('a_dept').value) };
+    if (!body.FullName || !body.Gender || !body.Email || !body.DepartmentID) return toast('Fill required fields', 'error');
+    const r = await POST('/supervisors', body);
+    if (r.success) { toast('Supervisor added!'); closeModal('addModal'); loadSupervisors(); } else toast(r.message, 'error');
+}
+
+function editSupervisor(id) {
+    const s = allSups.find(x => x.SupervisorID === id);
+    if (!s) return;
+    document.getElementById('e_id').value     = s.SupervisorID;
+    document.getElementById('e_name').value   = s.FullName;
+    document.getElementById('e_gender').value = s.Gender;
+    document.getElementById('e_dob').value    = s.DateOfBirth ? s.DateOfBirth.slice(0,10) : '';
+    document.getElementById('e_email').value  = s.Email || '';
+    document.getElementById('e_phone').value  = s.Phone || '';
+    document.getElementById('e_desig').value  = s.Designation || '';
+    document.getElementById('e_qual').value   = s.Qualification || '';
+    document.getElementById('e_spec').value   = s.Specialization || '';
+    fillSelect(document.getElementById('e_dept'), '/departments', 'DepartmentID', 'DepartmentName').then(() => {
+        document.getElementById('e_dept').value = s.DepartmentID;
+    });
+    openModal('editModal');
+}
+
+async function updateSupervisor() {
+    const id = document.getElementById('e_id').value;
+    const body = { FullName: document.getElementById('e_name').value, Gender: document.getElementById('e_gender').value, DateOfBirth: document.getElementById('e_dob').value, Email: document.getElementById('e_email').value, Phone: document.getElementById('e_phone').value, Designation: document.getElementById('e_desig').value, Qualification: document.getElementById('e_qual').value, Specialization: document.getElementById('e_spec').value, DepartmentID: Number(document.getElementById('e_dept').value) };
+    const r = await PUT(`/supervisors/${id}`, body);
+    if (r.success) { toast('Supervisor updated!'); closeModal('editModal'); loadSupervisors(); } else toast(r.message, 'error');
+}
+
+async function deleteSupervisor(id, name) {
+    const ok = await confirmDelete(`Delete supervisor "${name}"?`);
+    if (!ok) return;
+    const r = await DELETE(`/supervisors/${id}`);
+    if (r.success) { toast('Supervisor deleted!'); loadSupervisors(); } else toast(r.message, 'error');
+}
+
+async function init() {
+    await fillSelect(document.getElementById('deptFilter'), '/departments', 'DepartmentID', 'DepartmentName', 'All Departments');
+    await fillSelect(document.getElementById('a_dept'),     '/departments', 'DepartmentID', 'DepartmentName');
+    loadSupervisors();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

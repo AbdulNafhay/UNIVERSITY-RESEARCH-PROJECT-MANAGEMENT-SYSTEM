@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — University Research Management System</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🎓</div>
+    <div><h2>UniResearch</h2><p>MANAGEMENT SYSTEM</p></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a class="nav-link" href="index.html" data-page="index.html"><span class="nav-icon">📊</span> Dashboard</a>
+    <div class="nav-label">Core Data</div>
+    <a class="nav-link" href="pages/departments.html"  data-page="departments.html"><span class="nav-icon">🏛️</span> Departments</a>
+    <a class="nav-link" href="pages/supervisors.html"  data-page="supervisors.html"><span class="nav-icon">👨‍🏫</span> Supervisors</a>
+    <a class="nav-link" href="pages/students.html"     data-page="students.html"><span class="nav-icon">🎓</span> Students</a>
+    <a class="nav-link" href="pages/projects.html"     data-page="projects.html"><span class="nav-icon">🔬</span> Projects</a>
+    <div class="nav-label">Finance & Output</div>
+    <a class="nav-link" href="pages/funding.html"      data-page="funding.html"><span class="nav-icon">💰</span> Funding</a>
+    <a class="nav-link" href="pages/publications.html" data-page="publications.html"><span class="nav-icon">📄</span> Publications</a>
+    <div class="nav-label">Analytics</div>
+    <a class="nav-link" href="pages/reports.html"      data-page="reports.html"><span class="nav-icon">📈</span> Reports</a>
+  </nav>
+  <div class="sidebar-footer"><strong>University Research DB</strong>SQL Server + Node.js + HTML</div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" style="background:none;border:none;font-size:22px;cursor:pointer;color:#0d1b2a">☰</button>
+      <div class="topbar-title">Research <span>Dashboard</span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="loadAll()">🔄 Refresh</button>
+    </div>
+  </header>
+
+  <div class="page-body">
+    <div class="page-header">
+      <div>
+        <div class="breadcrumb">Home / <span>Dashboard</span></div>
+        <h1>Research Management Overview</h1>
+        <p>Live data from SQL Server — University Research Project Management System</p>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card">        <div class="stat-icon gold">🏛️</div>  <div class="stat-info"><h3 id="s-dept">—</h3><p>Departments</p></div></div>
+      <div class="stat-card blue">   <div class="stat-icon blue">👨‍🏫</div>  <div class="stat-info"><h3 id="s-sup">—</h3> <p>Supervisors</p></div></div>
+      <div class="stat-card green">  <div class="stat-icon green">🎓</div>  <div class="stat-info"><h3 id="s-stu">—</h3> <p>Students</p></div></div>
+      <div class="stat-card">        <div class="stat-icon gold">🔬</div>   <div class="stat-info"><h3 id="s-proj">—</h3><p>Total Projects</p></div></div>
+      <div class="stat-card green">  <div class="stat-icon green">✅</div>  <div class="stat-info"><h3 id="s-act">—</h3> <p>Active Projects</p></div></div>
+      <div class="stat-card blue">   <div class="stat-icon blue">🏆</div>   <div class="stat-info"><h3 id="s-comp">—</h3><p>Completed</p></div></div>
+      <div class="stat-card orange"> <div class="stat-icon orange">📄</div> <div class="stat-info"><h3 id="s-pub">—</h3> <p>Publications</p></div></div>
+      <div class="stat-card teal">   <div class="stat-icon teal">💰</div>   <div class="stat-info"><h3 id="s-fund">—</h3><p>Active Funding (PKR)</p></div></div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><h3>📊 Projects by Status</h3></div>
+        <div class="card-body"><div class="bar-chart" id="statusChart"><div class="spinner"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>💰 Funding by Type</h3></div>
+        <div class="card-body"><div class="bar-chart" id="fundingChart"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><h3>📄 Publications by Year</h3></div>
+        <div class="card-body"><div class="bar-chart" id="pubChart"><div class="spinner"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🎓 Students by Department</h3></div>
+        <div class="card-body"><div class="bar-chart" id="deptChart"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- RECENT PROJECTS TABLE -->
+    <div class="card">
+      <div class="card-header">
+        <h3>🔬 Recent Active Projects</h3>
+        <a href="pages/projects.html" class="btn btn-primary btn-sm">View All →</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Project Title</th><th>Type</th><th>Status</th><th>Supervisor</th><th>Budget</th><th>Total Funding</th></tr></thead>
+          <tbody id="recentTbl"><tr><td colspan="7" class="loading-row"><span class="spinner"></span> Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+async function loadAll() {
+    // Stats
+    try {
+        const r = await GET('/stats');
+        if(r.success) {
+            const d = r.data;
+            document.getElementById('s-dept').textContent  = d.departments;
+            document.getElementById('s-sup').textContent   = d.supervisors;
+            document.getElementById('s-stu').textContent   = d.students;
+            document.getElementById('s-proj').textContent  = d.projects;
+            document.getElementById('s-act').textContent   = d.activeProjects;
+            document.getElementById('s-comp').textContent  = d.completedProjects;
+            document.getElementById('s-pub').textContent   = d.publications;
+            document.getElementById('s-fund').textContent  = (Number(d.totalFunding)/1000000).toFixed(1)+'M';
+        }
+    } catch(e) {}
+
+    // Charts
+    function barChart(id, data, labelKey, valKey, colorClass='') {
+        const el = document.getElementById(id); if(!el) return;
+        const max = Math.max(...data.map(d=>Number(d[valKey])||0), 1);
+        el.innerHTML = data.map(d => {
+            const pct = ((Number(d[valKey])||0)/max*100).toFixed(1);
+            return `<div class="bar-row">
+                <span class="bar-label">${d[labelKey]}</span>
+                <div class="bar-track"><div class="bar-fill ${colorClass}" style="width:${pct}%"></div></div>
+                <span class="bar-val">${d[valKey]}</span>
+            </div>`;
+        }).join('');
+    }
+
+    try { const r = await GET('/reports/projects-by-status'); if(r.success) barChart('statusChart', r.data,'Status','Total','green'); } catch(e){}
+    try {
+        const r = await GET('/reports/funding-by-type');
+        if(r.success) {
+            const el = document.getElementById('fundingChart');
+            const max = Math.max(...r.data.map(d=>Number(d.Total)||0), 1);
+            el.innerHTML = r.data.map(d => {
+                const pct = ((Number(d.Total)||0)/max*100).toFixed(1);
+                const m = (Number(d.Total)/1000000).toFixed(1);
+                const lbl = (d.FundingType||'Other').split(' ')[0];
+                return `<div class="bar-row"><span class="bar-label">${lbl}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-val">${m}M</span></div>`;
+            }).join('');
+        }
+    } catch(e){}
+    try { const r = await GET('/reports/pubs-by-year'); if(r.success) barChart('pubChart', r.data.slice(0,6),'PublishedYear','Total','blue'); } catch(e){}
+    try {
+        const r = await GET('/reports/students-by-dept');
+        if(r.success) barChart('deptChart', r.data.slice(0,8),'DepartmentCode','Total','orange');
+    } catch(e){}
+
+    // Recent projects
+    try {
+        const r = await GET('/projects?status=Active');
+        const tb = document.getElementById('recentTbl');
+        if(!r.success || !r.data.length) {
+            tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#999">
+                No data. Make sure the backend is running: <b>node server.js</b></td></tr>`;
+            return;
+        }
+        tb.innerHTML = r.data.slice(0,8).map(p=>`<tr>
+            <td class="muted">${p.ProjectID}</td>
+            <td><b>${p.ProjectTitle}</b></td>
+            <td class="muted">${p.ProjectType||'—'}</td>
+            <td>${statusBadge(p.Status)}</td>
+            <td class="muted">${p.SupervisorName||'—'}</td>
+            <td class="muted">${fmtMoney(p.Budget)}</td>
+            <td><span class="badge badge-active">${fmtMoney(p.TotalFunding)}</span></td>
+        </tr>`).join('');
+    } catch(e){
+        document.getElementById('recentTbl').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#e74c3c">
+            ❌ Cannot connect to server. Run: <b>node server.js</b> in VS Code terminal.</td></tr>`;
+    }
+}
+document.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
